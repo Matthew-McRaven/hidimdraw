@@ -9,7 +9,7 @@
 #include <QDebug>
 #include <bitset>
 NDimPoint::NDimPoint(quint32 pointNum, QGraphicsItem *parent, quint16 dims, QVector<double> point):
-    QGraphicsItem(parent), _pointNum(pointNum), _dims(dims), _points(point), _actualX(std::numeric_limits<float>::quiet_NaN())
+    QGraphicsItem(parent), _pointNum(pointNum), _dims(dims), _points(point), _retPoints(QVector<double>(2)), _actualX(std::numeric_limits<float>::quiet_NaN())
 {
     setZValue(0);
 }
@@ -23,7 +23,7 @@ QPainterPath NDimPoint::shape() const
 
 void NDimPoint::rotate(quint16 d1, quint16 d2, double theta)
 {
-    if(theta == 0 || _dims == 2) return;
+    if(theta == 0) return;
     else {
         //Remove cache (X, Y) values
         _actualX = std::numeric_limits<float>::quiet_NaN();
@@ -33,7 +33,6 @@ void NDimPoint::rotate(quint16 d1, quint16 d2, double theta)
         _points[d1] = a*cos(nT) - b * sin(nT);
         _points[d2] = a*sin(nT) + b * cos(nT);
     }
-    for(int it=0; it <_edges.length(); it++) _edges[it]->adjust();
 }
 
 void NDimPoint::setPoints(QVector<double> &&points)
@@ -71,43 +70,24 @@ void NDimPoint::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 
 void NDimPoint::project()
 {
-    if(_dims != 2) {
-        QVector<double> ret = QVector<double>(2);
-        project(_dims-1, _points, ret);
-        //qDebug() << ret;
-        _actualX = ret[0];
-        _actualY = ret[1];
-        //Handle the actual projection
-        this->setPos(QPoint((int)_actualX, (int)_actualY));
-        for(int it=0; it<_edges.size();it++) _edges[it]->adjust();
-    } else if(_dims == 2) {
-        _actualX = _points[0];
-        _actualY = _points[1];
-        this->setPos(QPoint((int)_actualX, (int)_actualY));
-        for(int it=0; it<_edges.size();it++) _edges[it]->adjust();
-    }
-    else return;
+    if(_dims<2) return;
+    project(_dims-1, _points, _retPoints);
+    _actualX = _retPoints[0];
+    _actualY = _retPoints[1];
+    this->setPos(QPointF(_actualX, _actualY));
+    for(int it=0; it<_edges.size();it++) _edges[it]->adjust();
 }
 
 void NDimPoint::project(quint16 dim, QVector<double> inputs, QVector<double> &retVal) const
 {
-    double dx, dy, dz, dw;
-    if(dim == 2) {
-        double v;
-        for(int it=0; it < dim; it++)
-        {
-            //v = sqrt(inputs[it]*inputs[it]+(cDist+inputs[dim])*(cDist+inputs[dim]));
-            retVal[it] = inputs[it]*cDist/(cDist+vDist+inputs[dim]);
+    if(dim<2) return;
+    for(int dimIt = dim;2 <= dimIt ;dimIt-- ) {
+        for(int it=0; it < dimIt; it++) {
+            inputs[it] = inputs[it]*cDist/(cDist+vDist+inputs[dimIt]);
         }
     }
-    else {
-        double v;
-        for(int it=0; it < dim; it++)
-        {
-            //v = sqrt(inputs[it]*inputs[it]+(cDist+inputs[dim])*(cDist+inputs[dim]));
-            inputs[it] = inputs[it]*cDist/(cDist+vDist+inputs[dim]);
-        }
-        project(dim-1, inputs, retVal);
+    for(int it=0; it < 2; it++) {
+        retVal[it] = inputs[it];
     }
 }
 

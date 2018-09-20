@@ -26,7 +26,7 @@ private:
     //Project from dim to dim-1
     void project(quint16 dim, QVector<double> inputs, QVector<double>& retVal) const;
     quint32 _pointNum, _dims;
-    QVector<double> _points;
+    QVector<double> _points, _retPoints;
     QVector<Edge*> _edges;
     mutable double _actualX, _actualY;
 };
