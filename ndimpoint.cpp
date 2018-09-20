@@ -58,8 +58,6 @@ QRectF NDimPoint::boundingRect() const
 void NDimPoint::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     painter->setPen(Qt::NoPen);
-    painter->setBrush(Qt::darkGray);
-    painter->drawEllipse(-7, -7, 20, 20);
     QColor color;
     if(_pointNum == 0) color = QColor("red");
     else if(_pointNum == (1<<_dims)-1) color = QColor("green");
@@ -68,7 +66,7 @@ void NDimPoint::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     painter->setBrush(color);
 
     painter->setPen(QPen(Qt::black, 0));
-    painter->drawEllipse(-10, -10, 20, 20);
+    painter->drawEllipse(-5,-5,10,10);
 }
 
 void NDimPoint::project()
@@ -101,7 +99,6 @@ void NDimPoint::project(quint16 dim, QVector<double> inputs, QVector<double> &re
             v = sqrt(inputs[it]*inputs[it]+(cDist+inputs[dim])*(cDist+inputs[dim]));
             retVal[it] = inputs[it]*cDist/(cDist+inputs[dim]);
         }
-         qDebug() <<retVal;
     }
     else {
         double v;
@@ -189,10 +186,6 @@ void Edge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
                                                   cos(angle + M_PI / 3) * arrowSize);
     QPointF sourceArrowP2 = sourcePoint + QPointF(sin(angle + M_PI - M_PI / 3) * arrowSize,
                                                   cos(angle + M_PI - M_PI / 3) * arrowSize);
-    QPointF destArrowP1 = destPoint + QPointF(sin(angle - M_PI / 3) * arrowSize,
-                                              cos(angle - M_PI / 3) * arrowSize);
-    QPointF destArrowP2 = destPoint + QPointF(sin(angle - M_PI + M_PI / 3) * arrowSize,
-                                              cos(angle - M_PI + M_PI / 3) * arrowSize);
 
     painter->setBrush(Qt::black);
     painter->drawPolygon(QPolygonF() << line.p1() << sourceArrowP1 << sourceArrowP2);
