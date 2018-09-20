@@ -5,7 +5,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     MainWindow w;
-    ndimscene* s = new ndimscene(4);
+    ndimscene* s = new ndimscene(3);
     w.setCentralWidget(s);
     w.show();
 

@@ -1,6 +1,7 @@
 #include "ndimscene.h"
 #include <cmath>
 #include <qdebug.h>
+#include <bitset>
 static const int dist = 100;
 ndimscene::ndimscene(quint16 dims): timer(new QTimer(this)), _dims(dims)
 {
@@ -15,7 +16,18 @@ ndimscene::ndimscene(quint16 dims): timer(new QTimer(this)), _dims(dims)
     scale(qreal(2), qreal(2));
     setMinimumSize(20, 20);
     setWindowTitle(tr("Elastic Nodes"));
-
+    QVector<QColor> colies;
+    colies.append(QColor(255,127,167));
+    for(int it=1; it<dims; it++) {
+        QColor nextColor = QColor(0,0,0);
+        nextColor.toHsl();
+        qreal temp = colies[it-1].hslHueF()+1.f/dims;
+        if (temp>1)temp-=1;
+        qDebug() << temp;
+        nextColor.setHslF(temp,colies[it-1].saturationF(),colies[it-1].lightnessF());
+        qDebug() << nextColor;
+        colies.append(nextColor);
+    }
     for(int it = 0; it < 1<<dims; it++)
     {
         QVector<double> points;
@@ -28,14 +40,26 @@ ndimscene::ndimscene(quint16 dims): timer(new QTimer(this)), _dims(dims)
         scene->addItem(pt);
         points.clear();
     }
+    QList<int> others;
     for(int it = 0; it < 1<<dims; it++)
     {
         int other;
         for(int codeC = 0; codeC < dims; codeC ++) {
-            other = it^(1<<codeC);
-            if(other < it) continue;
-            else scene->addItem(new Edge(_points[it],_points[other]));
+            others.append(it^(1<<codeC));
         }
+        qSort(others);
+        for(int inner=0; inner< others.length(); inner++)
+        {
+            other = others[inner];
+            if(other < it) continue;
+            else {
+                Edge* edge = new Edge(_points[it],_points[other]);
+                qDebug()<<it<<inner;
+                edge->fillColor = colies[(inner+std::bitset<sizeof(int)>(it).count())%dims];
+                scene->addItem(edge);
+            }
+        }
+        others.clear();
     }
     connect(timer,&QTimer::timeout,this,&ndimscene::doStep);
     timer->setInterval(20);
@@ -44,10 +68,12 @@ ndimscene::ndimscene(quint16 dims): timer(new QTimer(this)), _dims(dims)
 
 void ndimscene::doStep()
 {
+    this->setEnabled(false);
     for(int it = 0; it < 1<< _dims; it++)
     {
         _points[it]->rotate(1,2,.01);
         _points[it]->rotate(0,2,.02);
         _points[it]->project();
     }
+    this->setEnabled(true);
 }

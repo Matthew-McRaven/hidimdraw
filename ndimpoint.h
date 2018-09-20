@@ -43,14 +43,13 @@ public:
 
     enum { Type = UserType + 2 };
     int type() const override { return Type; }
-
+    QColor fillColor;
 protected:
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
 private:
     NDimPoint *source, *dest;
-
     QPointF sourcePoint;
     QPointF destPoint;
     qreal arrowSize;
