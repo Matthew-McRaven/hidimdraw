@@ -48,13 +48,13 @@ ndimscene::ndimscene(quint16 dims): timer(new QTimer(this)), _dims(dims)
             others.append(it^(1<<codeC));
         }
         qSort(others);
-        for(int inner=0; inner< others.length(); inner++)
+        for(int inner = 0; inner< others.length(); inner++)
         {
             other = others[inner];
             if(other < it) continue;
             else {
                 Edge* edge = new Edge(_points[it],_points[other]);
-                qDebug()<<it<<inner;
+                qDebug()<<it<<other;
                 edge->fillColor = colies[(inner+std::bitset<sizeof(int)>(it).count())%dims];
                 scene->addItem(edge);
             }
@@ -72,7 +72,8 @@ void ndimscene::doStep()
     for(int it = 0; it < 1<< _dims; it++)
     {
         _points[it]->rotate(1,2,.01);
-        _points[it]->rotate(0,2,.02);
+        _points[it]->rotate(0,2,.005);
+        _points[it]->rotate(3,2,.02);
         _points[it]->project();
     }
     this->setEnabled(true);
