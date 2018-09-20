@@ -11,6 +11,7 @@
 NDimPoint::NDimPoint(quint32 pointNum, QGraphicsItem *parent, quint16 dims, QVector<double> point):
     QGraphicsItem(parent), _pointNum(pointNum), _dims(dims), _points(point), _actualX(std::numeric_limits<float>::quiet_NaN())
 {
+    setZValue(0);
 }
 const int cDist = 500;
 QPainterPath NDimPoint::shape() const
@@ -121,6 +122,7 @@ Edge::Edge(NDimPoint *sourceNode, NDimPoint *destNode)
     dest = destNode;
     source->addEdge(this);
     dest->addEdge(this);
+    setZValue(-1);
     adjust();
 }
 
