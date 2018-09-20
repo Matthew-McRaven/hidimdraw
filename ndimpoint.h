@@ -44,6 +44,7 @@ public:
     enum { Type = UserType + 2 };
     int type() const override { return Type; }
     QColor fillColor;
+    qint8 cidx;
 protected:
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;

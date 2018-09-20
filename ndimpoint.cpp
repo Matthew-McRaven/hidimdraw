@@ -13,7 +13,7 @@ NDimPoint::NDimPoint(quint32 pointNum, QGraphicsItem *parent, quint16 dims, QVec
 {
     setZValue(0);
 }
-const int cDist = 500;
+const int cDist = 400, vDist = 50;
 QPainterPath NDimPoint::shape() const
 {
     QPainterPath path;
@@ -96,16 +96,16 @@ void NDimPoint::project(quint16 dim, QVector<double> inputs, QVector<double> &re
         double v;
         for(int it=0; it < dim; it++)
         {
-            v = sqrt(inputs[it]*inputs[it]+(cDist+inputs[dim])*(cDist+inputs[dim]));
-            retVal[it] = inputs[it]*cDist/(cDist+inputs[dim]);
+            //v = sqrt(inputs[it]*inputs[it]+(cDist+inputs[dim])*(cDist+inputs[dim]));
+            retVal[it] = inputs[it]*cDist/(cDist+vDist+inputs[dim]);
         }
     }
     else {
         double v;
         for(int it=0; it < dim; it++)
         {
-            v = sqrt(inputs[it]*inputs[it]+(cDist+inputs[dim])*(cDist+inputs[dim]));
-            inputs[it] = inputs[it]*cDist/(cDist+inputs[dim]);
+            //v = sqrt(inputs[it]*inputs[it]+(cDist+inputs[dim])*(cDist+inputs[dim]));
+            inputs[it] = inputs[it]*cDist/(cDist+vDist+inputs[dim]);
         }
         project(dim-1, inputs, retVal);
     }
