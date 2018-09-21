@@ -34,6 +34,7 @@ ndimscene::ndimscene(quint16 dims): timer(new QTimer(this)), _dims(dims)
         }
         NDimPoint* pt = new NDimPoint(it, nullptr, dims, points);
         _points.append(pt);
+        _points[it]->rotate(2,1,.65);
         pt->project();
         scene->addItem(pt);
         points.clear();
@@ -52,9 +53,9 @@ ndimscene::ndimscene(quint16 dims): timer(new QTimer(this)), _dims(dims)
             if(other < it) continue;
             else {
                 Edge* edge = new Edge(_points[it],_points[other]);
-                qDebug()<<it<<other;
                 edge->cidx = (inner+std::bitset<sizeof(int)>(it).count())%dims;
                 edge->fillColor = colies[log2(it^other)];
+                edge->setDotted(std::bitset<sizeof(int)>(it>>(int)log2(it^other)).count()%2);
                 scene->addItem(edge);
             }
         }
@@ -70,14 +71,14 @@ void ndimscene::doStep()
     this->setEnabled(false);
     for(int it = 0; it < 1<< _dims; it++)
     {
-        //_points[it]->rotate(4,0,.01);
+        _points[it]->rotate(2,1,.005);
         _points[it]->rotate(1,3,.005);
         //_points[it]->rotate(4,2,.02);
-        _points[it]->rotate(2,1,.005);
+        //_points[it]->rotate(2,1,.005);
         //_points[it]->rotate(4,5,.01);
         //_points[it]->rotate(3,5,.02);
         //_points[it]->rotate(4,3,.01);
-        _points[it]->rotate(1,0,.005);
+        //_points[it]->rotate(1,0,.005);
         _points[it]->project();
     }
     this->setEnabled(true);

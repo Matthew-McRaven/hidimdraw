@@ -43,6 +43,7 @@ public:
 
     enum { Type = UserType + 2 };
     int type() const override { return Type; }
+    void setDotted(bool dotted);
     QColor fillColor;
     qint8 cidx;
 protected:
@@ -54,6 +55,7 @@ private:
     QPointF sourcePoint;
     QPointF destPoint;
     qreal arrowSize;
+    bool _dotted;
 };
 
 #endif

@@ -92,7 +92,7 @@ void NDimPoint::project(quint16 dim, QVector<double> inputs, QVector<double> &re
 }
 
 Edge::Edge(NDimPoint *sourceNode, NDimPoint *destNode)
-    : arrowSize(10)
+    : arrowSize(10), _dotted(false)
 {
     setAcceptedMouseButtons(0);
     source = sourceNode;
@@ -132,6 +132,11 @@ void Edge::adjust()
     }
 }
 
+void Edge::setDotted(bool dotted)
+{
+    _dotted = dotted;
+}
+
 QRectF Edge::boundingRect() const
 {
     if (!source || !dest)
@@ -156,17 +161,19 @@ void Edge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
         return;
 
     // Draw the line itself
-    painter->setPen(QPen(fillColor, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    painter->setPen(QPen(fillColor, 1, _dotted ? Qt::DotLine : Qt::SolidLine,
+                         Qt::RoundCap, Qt::RoundJoin));
     painter->drawLine(line);
 
     // Draw the arrows
+    painter->setPen(QPen(fillColor, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     double angle = std::atan2(-line.dy(), line.dx());
-
-    QPointF destArrowP1 = destPoint - QPointF(sin(angle + M_PI / 3) * arrowSize,
+    QPointF offset(arrowSize*sin(angle+M_PI/2)/2, arrowSize*cos(angle+M_PI/2)/2);
+    QPointF destArrowP1 = (sourcePoint+destPoint)/2 + QPointF(sin(angle + M_PI / 3) * arrowSize,
                                                   cos(angle + M_PI / 3) * arrowSize);
-    QPointF destArrowP2 = destPoint - QPointF(sin(angle + M_PI - M_PI / 3) * arrowSize,
+    QPointF destArrowP2 = (sourcePoint+destPoint)/2 + QPointF(sin(angle + M_PI - M_PI / 3) * arrowSize,
                                                   cos(angle + M_PI - M_PI / 3) * arrowSize);
 
     painter->setBrush(fillColor);
-    painter->drawPolygon(QPolygonF() << line.p2() << destArrowP1 << destArrowP2);
+    painter->drawPolygon(QPolygonF() << (line.p1()+line.p2()-2*offset)/2 << destArrowP1-offset << destArrowP2-offset);
 }
