@@ -17,15 +17,13 @@ ndimscene::ndimscene(quint16 dims): timer(new QTimer(this)), _dims(dims)
     setMinimumSize(20, 20);
     setWindowTitle(tr("Elastic Nodes"));
     QVector<QColor> colies;
-    colies.append(QColor(255,127,167));
-    for(int it=1; it<dims; it++) {
+    double nextHue = 0.2f;
+    for(int it=0; it<dims; it++) {
         QColor nextColor = QColor(0,0,0);
         nextColor.toHsl();
-        qreal temp = colies[it-1].hslHueF()+1.f/dims;
-        if (temp>1)temp-=1;
-        qDebug() << temp;
-        nextColor.setHslF(temp,colies[it-1].saturationF(),colies[it-1].lightnessF());
-        qDebug() << nextColor;
+        nextHue+=.6135;
+        if (nextHue>1)nextHue-=1;
+        nextColor.setHslF(nextHue,.5f,.4f);
         colies.append(nextColor);
     }
     for(int it = 0; it < 1<<dims; it++)
