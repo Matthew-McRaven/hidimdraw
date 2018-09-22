@@ -16,28 +16,58 @@ ndimscene::ndimscene(QWidget* parent, quint16 dims): QGraphicsView(parent),
     setTransformationAnchor(AnchorUnderMouse);
     scale(qreal(2), qreal(2));
     setMinimumSize(300, 300);
-    setWindowTitle(tr("Elastic Nodes"));
-    QVector<QColor> colies;
+
+    setDims(dims);
+    connect(timer,&QTimer::timeout,this,&ndimscene::doStep);
+    timer->setInterval(20);
+}
+
+void ndimscene::startRotation()
+{
+    timer->start();
+}
+
+void ndimscene::stopRotation()
+{
+    timer->stop();
+}
+
+void ndimscene::onSetDims(quint16 dimensions)
+{
+    clear();
+    setDims(dimensions);
+}
+
+void ndimscene::clear()
+{
+    _points.clear();
+    _edges.clear();
+}
+
+void ndimscene::setDims(quint16 dims)
+{
+    scene()->clear();
+    QVector<QColor> colors;
     double nextHue = 0.2f;
     for(int it=0; it<dims; it++) {
-        QColor nextColor = QColor(0,0,0);
-        nextColor.toHsl();
+        QColor nextColor;
         nextHue+=.6135;
-        if (nextHue>1)nextHue-=1;
+        if (nextHue>1) nextHue-=1;
         nextColor.setHslF(nextHue,.5f,.4f);
-        colies.append(nextColor);
+        colors.append(nextColor);
     }
+
     for(int it = 0; it < 1<<dims; it++)
     {
         QVector<double> points;
         for(int codeC = 0; codeC < dims; codeC ++) {
-            points << (bool(it&(1<<codeC))?1:-1) * dist;
+            points << (bool(it & (1 << codeC))? 1 : -1) * dist;
         }
         NDimPoint* pt = new NDimPoint(it, nullptr, dims, points);
         _points.append(pt);
         _points[it]->rotate(2,1,.65);
         pt->project();
-        scene->addItem(pt);
+        scene()->addItem(pt);
         points.clear();
     }
     QList<int> others;
@@ -55,16 +85,13 @@ ndimscene::ndimscene(QWidget* parent, quint16 dims): QGraphicsView(parent),
             else {
                 Edge* edge = new Edge(_points[it],_points[other]);
                 edge->cidx = (inner+std::bitset<sizeof(int)>(it).count())%dims;
-                edge->fillColor = colies[log2(it^other)];
+                edge->fillColor = colors[log2(it^other)];
                 edge->setDotted(std::bitset<sizeof(int)>(it>>(int)log2(it^other)).count()%2);
-                scene->addItem(edge);
+                scene()->addItem(edge);
             }
         }
         others.clear();
     }
-    connect(timer,&QTimer::timeout,this,&ndimscene::doStep);
-    timer->setInterval(20);
-    timer->start();
 }
 
 void ndimscene::doStep()
