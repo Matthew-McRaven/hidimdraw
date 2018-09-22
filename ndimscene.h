@@ -8,7 +8,7 @@
 class ndimscene : public QGraphicsView
 {
 public:
-    explicit ndimscene(quint16 dims);
+    explicit ndimscene(QWidget* parent = nullptr, quint16 dims=3);
 private:
     quint32 _dims;
     QTimer* timer;

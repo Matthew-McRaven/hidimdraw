@@ -3,7 +3,8 @@
 #include <qdebug.h>
 #include <bitset>
 static const int dist = 100;
-ndimscene::ndimscene(quint16 dims): timer(new QTimer(this)), _dims(dims)
+ndimscene::ndimscene(QWidget* parent, quint16 dims): QGraphicsView(parent),
+    timer(new QTimer(this)), _dims(dims)
 {
     QGraphicsScene *scene = new QGraphicsScene(this);
     scene->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -14,7 +15,7 @@ ndimscene::ndimscene(quint16 dims): timer(new QTimer(this)), _dims(dims)
     setRenderHint(QPainter::Antialiasing);
     setTransformationAnchor(AnchorUnderMouse);
     scale(qreal(2), qreal(2));
-    setMinimumSize(20, 20);
+    setMinimumSize(300, 300);
     setWindowTitle(tr("Elastic Nodes"));
     QVector<QColor> colies;
     double nextHue = 0.2f;
@@ -72,13 +73,13 @@ void ndimscene::doStep()
     for(int it = 0; it < 1<< _dims; it++)
     {
         _points[it]->rotate(2,1,.005);
-        _points[it]->rotate(1,3,.005);
+        // _points[it]->rotate(1,3,.005);
         //_points[it]->rotate(4,2,.02);
         //_points[it]->rotate(2,1,.005);
         //_points[it]->rotate(4,5,.01);
-        //_points[it]->rotate(3,5,.02);
-        //_points[it]->rotate(4,3,.01);
-        //_points[it]->rotate(1,0,.005);
+        //_points[it]->rotate(0,4,.02);
+        _points[it]->rotate(0,2,.01);
+        _points[it]->rotate(1,0,.005);
         _points[it]->project();
     }
     this->setEnabled(true);
