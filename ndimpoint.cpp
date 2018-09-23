@@ -8,53 +8,60 @@
 #include <QStyleOptionGraphicsItem>
 #include <QDebug>
 #include <bitset>
-NDimPoint::NDimPoint(quint32 pointNum, QGraphicsItem *parent, quint16 dims, QVector<double> point):
-    QGraphicsItem(parent), _pointNum(pointNum), _dims(dims), _points(point), _retPoints(QVector<double>(2)), _actualX(std::numeric_limits<float>::quiet_NaN())
+NDimNode::NDimNode(quint32 pointNum, QGraphicsItem *parent, quint16 dims, QVector<double> point):
+    QGraphicsItem(parent), _pointNum(pointNum), _dims(dims), _actualX(std::numeric_limits<float>::quiet_NaN()),
+    _point(new NDimPoint(dims, point))
+
 {
     setZValue(0);
 }
 const int cDist = 400, vDist = 50;
-QPainterPath NDimPoint::shape() const
+
+QPainterPath NDimNode::shape() const
 {
     QPainterPath path;
     path.addEllipse(-10, -10, 20, 20);
     return path;
 }
 
-void NDimPoint::rotate(quint16 d1, quint16 d2, double theta)
+void NDimNode::project(QVector<double> &tempInput, QVector<double> &tempOutput)
 {
-    if(theta == 0) return;
-    else {
-        //Remove cache (X, Y) values
-        _actualX = std::numeric_limits<float>::quiet_NaN();
-        //Now perform rotation
-        double a = _points[d1], b = _points[d2];
-        double nT = theta;
-        _points[d1] = a*cos(nT) - b * sin(nT);
-        _points[d2] = a*sin(nT) + b * cos(nT);
-    }
+    if(_dims<2) return;
+    for(int it=0; it< _point->getPoints().size(); it++) tempInput[it] = _point->getPoints()[it];
+    _point->project(_dims-1, tempInput , tempOutput);
+    _actualX = tempOutput[0];
+    _actualY = tempOutput[1];
+    this->setPos(QPointF(_actualX, _actualY));
+    for(int it=0; it<_edges.size();it++) _edges[it]->adjust();
 }
 
-void NDimPoint::setPoints(QVector<double> &&points)
+void NDimNode::rotate(quint16 d1, quint16 d2, double theta)
+{
+    //Remove cache (X, Y) values
+    _actualX = std::numeric_limits<float>::quiet_NaN();
+    _point->rotate(d1, d2, theta);
+}
+
+void NDimNode::setPoints(QVector<double> &&points)
 {
     _actualX = std::numeric_limits<float>::quiet_NaN();
     if(points.size() != _dims) throw -1;
-    _points = std::move(points);
+    _point->setPoints(std::move(points));
 }
 
-void NDimPoint::addEdge(Edge * edge)
+void NDimNode::addEdge(Edge * edge)
 {
     _edges << edge;
     edge->adjust();
 }
 
-QRectF NDimPoint::boundingRect() const
+QRectF NDimNode::boundingRect() const
 {
     qreal adjust = 2;
     return QRectF( -10 - adjust, -10 - adjust, 23 + adjust, 23 + adjust);
 }
 
-void NDimPoint::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void NDimNode::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     painter->setPen(Qt::NoPen);
     QColor color;
@@ -68,30 +75,7 @@ void NDimPoint::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     painter->drawEllipse(-5,-5,10,10);
 }
 
-void NDimPoint::project()
-{
-    if(_dims<2) return;
-    project(_dims-1, _points, _retPoints);
-    _actualX = _retPoints[0];
-    _actualY = _retPoints[1];
-    this->setPos(QPointF(_actualX, _actualY));
-    for(int it=0; it<_edges.size();it++) _edges[it]->adjust();
-}
-
-void NDimPoint::project(quint16 dim, QVector<double> inputs, QVector<double> &retVal) const
-{
-    if(dim<2) return;
-    for(int dimIt = dim;2 <= dimIt ;dimIt-- ) {
-        for(int it=0; it < dimIt; it++) {
-            inputs[it] = inputs[it]*cDist/(cDist+vDist+inputs[dimIt]);
-        }
-    }
-    for(int it=0; it < 2; it++) {
-        retVal[it] = inputs[it];
-    }
-}
-
-Edge::Edge(NDimPoint *sourceNode, NDimPoint *destNode)
+Edge::Edge(NDimNode *sourceNode, NDimNode *destNode)
     : arrowSize(10), _dotted(false)
 {
     setAcceptedMouseButtons(0);
@@ -103,12 +87,12 @@ Edge::Edge(NDimPoint *sourceNode, NDimPoint *destNode)
     adjust();
 }
 
-NDimPoint *Edge::sourceNode() const
+NDimNode *Edge::sourceNode() const
 {
     return source;
 }
 
-NDimPoint *Edge::destNode() const
+NDimNode *Edge::destNode() const
 {
     return dest;
 }
@@ -176,4 +160,44 @@ void Edge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 
     painter->setBrush(fillColor);
     painter->drawPolygon(QPolygonF() << (line.p1()+line.p2()-2*offset)/2 << destArrowP1-offset << destArrowP2-offset);
+}
+
+NDimPoint::NDimPoint(quint16 dims, QVector<double> point): _dims(dims), _points(point)
+{
+
+}
+
+void NDimPoint::project(quint16 dim, QVector<double> &inputs, QVector<double> &retVal) const
+{
+    if(dim < 2) return;
+    for(int dimIt = dim;2 <= dimIt ;dimIt-- ) {
+        for(int it = 0; it < dimIt; it++) {
+            inputs[it] = inputs[it] * cDist / (cDist + vDist + inputs[dimIt]);
+        }
+    }
+    for(int it = 0; it < 2; it++) {
+        retVal[it] = inputs[it];
+    }
+}
+
+void NDimPoint::rotate(quint16 d1, quint16 d2, double theta)
+{
+    if(theta == 0) return;
+    else {
+        //Now perform rotation
+        double a = _points[d1], b = _points[d2];
+        double nT = theta;
+        _points[d1] = a*cos(nT) - b * sin(nT);
+        _points[d2] = a*sin(nT) + b * cos(nT);
+    }
+}
+
+const QVector<double> &NDimPoint::getPoints() const
+{
+    return _points;
+}
+
+void NDimPoint::setPoints(QVector<double> &&points)
+{
+    _points = std::move(points);
 }

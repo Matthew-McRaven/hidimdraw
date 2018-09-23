@@ -4,7 +4,7 @@
 #include <bitset>
 static const int dist = 100;
 ndimscene::ndimscene(QWidget* parent, quint16 dims): QGraphicsView(parent),
-    timer(new QTimer(this)), _dims(dims)
+    timer(new QTimer(this)), _dims(dims), _points()
 {
     QGraphicsScene *scene = new QGraphicsScene(this);
     scene->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -32,7 +32,7 @@ void ndimscene::stopRotation()
     timer->stop();
 }
 
-void ndimscene::onSetDims(quint16 dimensions)
+void ndimscene::onSetDims(int dimensions)
 {
     clear();
     setDims(dimensions);
@@ -42,10 +42,17 @@ void ndimscene::clear()
 {
     _points.clear();
     _edges.clear();
+    for(int it=0; it<_points.size(); it++) {
+        delete _points[it];
+    }
+    for(int it=0; it<_edges.size(); it++) {
+        delete _edges[it];
+    }
 }
 
 void ndimscene::setDims(quint16 dims)
 {
+    _dims = dims;
     scene()->clear();
     QVector<QColor> colors;
     double nextHue = 0.2f;
@@ -56,17 +63,17 @@ void ndimscene::setDims(quint16 dims)
         nextColor.setHslF(nextHue,.5f,.4f);
         colors.append(nextColor);
     }
-
+    QVector<double> tempRet = QVector<double>(2), tempInput = QVector<double>(dims);
     for(int it = 0; it < 1<<dims; it++)
     {
         QVector<double> points;
         for(int codeC = 0; codeC < dims; codeC ++) {
             points << (bool(it & (1 << codeC))? 1 : -1) * dist;
         }
-        NDimPoint* pt = new NDimPoint(it, nullptr, dims, points);
+        NDimNode* pt = new NDimNode(it, nullptr, dims, points);
         _points.append(pt);
         _points[it]->rotate(2,1,.65);
-        pt->project();
+        pt->project(tempInput,tempRet);
         scene()->addItem(pt);
         points.clear();
     }
@@ -93,7 +100,7 @@ void ndimscene::setDims(quint16 dims)
         others.clear();
     }
 }
-
+QVector<double> tempRet = QVector<double>(2), tempInput = QVector<double>(8);
 void ndimscene::doStep()
 {
     this->setEnabled(false);
@@ -107,7 +114,7 @@ void ndimscene::doStep()
         //_points[it]->rotate(0,4,.02);
         _points[it]->rotate(0,2,.01);
         _points[it]->rotate(1,0,.005);
-        _points[it]->project();
+        _points[it]->project(tempInput, tempRet);
     }
     this->setEnabled(true);
 }

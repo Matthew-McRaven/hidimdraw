@@ -12,11 +12,11 @@ public:
 public slots:
     void startRotation();
     void stopRotation();
-    void onSetDims(quint16 dimensions);
+    void onSetDims(int dimensions);
 private:
     quint32 _dims;
     QTimer* timer;
-    QVector<NDimPoint*> _points;
+    QVector<NDimNode*> _points;
     QVector<Edge*> _edges;
     void clear();
     void setDims(quint16 dimensions);

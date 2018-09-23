@@ -27,12 +27,14 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     ndimpoint.cpp \
-    ndimscene.cpp
+    ndimscene.cpp \
+    spinboxaction.cpp
 
 HEADERS += \
         mainwindow.h \
     ndimpoint.h \
-    ndimscene.h
+    ndimscene.h \
+    spinboxaction.h
 
 FORMS += \
         mainwindow.ui

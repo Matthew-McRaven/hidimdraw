@@ -4,13 +4,25 @@
 #include <QWidget>
 #include <QGraphicsItem>
 class Edge;
-class NDimPoint : public QGraphicsItem
+class NDimPoint {
+private:
+    quint32 _dims;
+    QVector<double> _points;
+public:
+    explicit NDimPoint(quint16 dims = 2, QVector<double> point = {0,0});
+    void project(quint16 dim, QVector<double> &inputs, QVector<double> &retVal) const;
+    void rotate(quint16 d1, quint16 d2, double theta);
+    void setPoints(QVector<double> &&points);
+    const QVector<double>& getPoints() const;
+};
+
+class NDimNode : public QGraphicsItem
 {
 public:
-    NDimPoint(quint32 pointNum, QGraphicsItem* parent = nullptr, quint16 dims = 2, QVector<double> point = {0,0});
+    explicit NDimNode(quint32 pointNum, QGraphicsItem* parent = nullptr, quint16 dims = 2, QVector<double> point = {0,0});
 
     void rotate(quint16 d1, quint16 d2, double theta);
-    void setPoints(QVector<double> && points);
+    void setPoints(QVector<double> &&points);
     void addEdge(Edge*);
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
@@ -20,13 +32,12 @@ public:
     quint32 dims() const;
 
     //Handle projecting if it needs to be done, otherwise do nothing
-    void project();
+    void project(QVector<double> &tempInput, QVector<double> &tempOutput);
 
 private:
     //Project from dim to dim-1
-    void project(quint16 dim, QVector<double> inputs, QVector<double>& retVal) const;
+    QSharedPointer<NDimPoint> _point;
     quint32 _pointNum, _dims;
-    QVector<double> _points, _retPoints;
     QVector<Edge*> _edges;
     mutable double _actualX, _actualY;
 };
@@ -34,10 +45,10 @@ private:
 class Edge : public QGraphicsItem
 {
 public:
-    Edge(NDimPoint *sourceNode, NDimPoint *destNode);
+    Edge(NDimNode *sourceNode, NDimNode *destNode);
 
-    NDimPoint *sourceNode() const;
-    NDimPoint *destNode() const;
+    NDimNode *sourceNode() const;
+    NDimNode *destNode() const;
 
     void adjust();
 
@@ -46,12 +57,13 @@ public:
     void setDotted(bool dotted);
     QColor fillColor;
     qint8 cidx;
+
 protected:
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
 private:
-    NDimPoint *source, *dest;
+    NDimNode *source, *dest;
     QPointF sourcePoint;
     QPointF destPoint;
     qreal arrowSize;
