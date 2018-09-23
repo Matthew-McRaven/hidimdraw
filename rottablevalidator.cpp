@@ -1,5 +1,6 @@
 #include "rottablevalidator.h"
 #include <QLineEdit>
+#include <QDoubleSpinBox>
 RotTableDelegator::RotTableDelegator(QObject *parent): QStyledItemDelegate(parent)
 {
 
@@ -15,18 +16,19 @@ QWidget *RotTableDelegator::createEditor(QWidget *parent, const QStyleOptionView
     // The first column is not user editable, so do not create an editor.
     if(index.column() == 0) return 0;
     // Otherwise, defer to QStyledItemDelegate's implementation, which returns a LineEdit
-    QLineEdit *line = qobject_cast<QLineEdit*>(QStyledItemDelegate::createEditor(parent, option, index));
-    // Apply a validator, so that a user cannot input anything other than a one byte hexadecimal constant
-    line->setValidator(new QRegExpValidator(QRegExp("[0-9]+\.[0-9]+"), line));
-    return line;
+    QDoubleSpinBox *spin = new QDoubleSpinBox(parent);
+    spin->setSingleStep(.1);
+    spin->setMinimum(-4);
+    spin->setMaximum(4);
+    return spin;
 }
 
 void RotTableDelegator::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
     // The default value in the line edit should be the text currently in that cell.
-    QString value = index.model()->data(index, Qt::EditRole).toString();
-        QLineEdit *line = static_cast<QLineEdit*>(editor);
-        line->setText(value);
+    double value = index.model()->data(index, Qt::EditRole).toDouble();
+    QDoubleSpinBox *spin = static_cast<QDoubleSpinBox*>(editor);
+    spin->setValue(value);
 }
 
 void RotTableDelegator::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &) const
@@ -38,7 +40,7 @@ void RotTableDelegator::updateEditorGeometry(QWidget *editor, const QStyleOption
 void RotTableDelegator::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
 {
     // Get text from editor and convert it to a integer
-    QLineEdit *line = static_cast<QLineEdit*>(editor);
-    QString value = line->text();
-    model->setData(index,value);
+    QDoubleSpinBox *spin = static_cast<QDoubleSpinBox*>(editor);
+    double value = spin->value();
+    model->setData(index, value);
 }

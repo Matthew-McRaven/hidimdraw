@@ -70,6 +70,7 @@ void MainWindow::setUpRotationWidget()
     }
     ui->tableView_Rots->resizeColumnsToContents();
     ui->tableView_Rots->resizeRowsToContents();
+    ui->tableView_Rots->horizontalHeader()->setStretchLastSection(true);
     connect(model, &QStandardItemModel::itemChanged, this, &MainWindow::onDataChanged);
 }
 
