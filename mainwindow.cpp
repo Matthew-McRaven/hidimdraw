@@ -68,9 +68,11 @@ void MainWindow::setUpRotationWidget()
             row++;
         }
     }
-    ui->tableView_Rots->resizeColumnsToContents();
-    ui->tableView_Rots->resizeRowsToContents();
-    ui->tableView_Rots->horizontalHeader()->setStretchLastSection(true);
     connect(model, &QStandardItemModel::itemChanged, this, &MainWindow::onDataChanged);
+    ui->tableView_Rots->resizeRowsToContents();
+    ui->tableView_Rots->resizeColumnsToContents();
+    //Seems redundant, but horizontal header will not stretch last column correctly one resize w/o disable+re-enable
+    ui->tableView_Rots->horizontalHeader()->setStretchLastSection(false);
+    ui->tableView_Rots->horizontalHeader()->setStretchLastSection(true);
 }
 
