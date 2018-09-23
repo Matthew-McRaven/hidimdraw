@@ -2,9 +2,11 @@
 #include <cmath>
 #include <qdebug.h>
 #include <bitset>
+#include <qvector.h>
 static const int dist = 100;
 ndimscene::ndimscene(QWidget* parent, quint16 dims): QGraphicsView(parent),
-    timer(new QTimer(this)), _dims(dims), _points()
+    timer(new QTimer(this)), _dims(dims), _points(), _rotMatrices(QVector<double>(21)),
+    _idxToDims(QVector<std::tuple<quint16, quint16>>(22))
 {
     QGraphicsScene *scene = new QGraphicsScene(this);
     scene->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -20,6 +22,25 @@ ndimscene::ndimscene(QWidget* parent, quint16 dims): QGraphicsView(parent),
     setDims(dims);
     connect(timer,&QTimer::timeout,this,&ndimscene::doStep);
     timer->setInterval(20);
+}
+
+void ndimscene::setRotation(quint16 dim1, quint16 dim2, double theta)
+{
+    if(dim1 == dim2) return;
+    if(dim1 > dim2) {
+        theta *= -1;
+        quint16 temp = dim1;
+        dim1 = dim2;
+        dim2 = temp;
+    }
+    auto temp = std::tuple<quint16, quint16>(dim1, dim2);
+    for(int it=0; it<_rotEntries; it++) {
+        if (_idxToDims[it] == temp) {
+            qDebug().noquote() << dim1 <<" wrt " << dim2 << " set to "<< theta;
+            _rotMatrices[it] = theta;
+            break;
+        }
+    }
 }
 
 void ndimscene::startRotation()
@@ -99,6 +120,18 @@ void ndimscene::setDims(quint16 dims)
         }
         others.clear();
     }
+    _rotEntries = 0;
+    //First Dim
+    for(int fDim=0; fDim<_dims; fDim++) {
+        //Second Dim
+        for(int sDim=fDim+1; sDim<_dims; sDim++) {
+            if(_rotEntries> _idxToDims.size()) _idxToDims.append(std::tuple<quint16, quint16>(fDim, sDim));
+            else _idxToDims[_rotEntries]=std::tuple<quint16, quint16>(fDim, sDim);
+            _rotEntries++;
+        }
+    }
+    for(int it=0; it<_rotEntries; it++) _rotMatrices[it] = 0;
+
 }
 QVector<double> tempRet = QVector<double>(2), tempInput = QVector<double>(8);
 void ndimscene::doStep()
@@ -106,14 +139,12 @@ void ndimscene::doStep()
     this->setEnabled(false);
     for(int it = 0; it < 1<< _dims; it++)
     {
-        _points[it]->rotate(2,1,.005);
-        // _points[it]->rotate(1,3,.005);
-        //_points[it]->rotate(4,2,.02);
-        //_points[it]->rotate(2,1,.005);
-        //_points[it]->rotate(4,5,.01);
-        //_points[it]->rotate(0,4,.02);
-        _points[it]->rotate(0,2,.01);
-        _points[it]->rotate(1,0,.005);
+        for(int rotDim=0; rotDim<_rotEntries; rotDim++) {
+            if(_rotMatrices[rotDim]==0.0f) continue;
+            else _points[it]->rotate(std::get<0>(_idxToDims[rotDim]),
+                                     std::get<1>(_idxToDims[rotDim]),
+                                     _rotMatrices[rotDim]);
+        }
         _points[it]->project(tempInput, tempRet);
     }
     this->setEnabled(true);

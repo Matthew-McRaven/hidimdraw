@@ -28,13 +28,15 @@ SOURCES += \
         mainwindow.cpp \
     ndimpoint.cpp \
     ndimscene.cpp \
-    spinboxaction.cpp
+    spinboxaction.cpp \
+    rottablevalidator.cpp
 
 HEADERS += \
         mainwindow.h \
     ndimpoint.h \
     ndimscene.h \
-    spinboxaction.h
+    spinboxaction.h \
+    rottablevalidator.h
 
 FORMS += \
         mainwindow.ui
