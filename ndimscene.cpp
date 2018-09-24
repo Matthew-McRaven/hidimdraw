@@ -5,6 +5,7 @@
 #include <qvector.h>
 #include <QGestureEvent>
 #include <QScrollBar>
+#include <QApplication>
 static const int dist = 100;
 QVector<double> tempRet = QVector<double>(2), tempInput = QVector<double>(8);
 ndimscene::ndimscene(QWidget* parent, quint16 dims): QGraphicsView(parent), _scaleFactor(2),
@@ -265,4 +266,7 @@ void ndimscene::doStep()
         _points[it]->project(tempInput, tempRet, _xyOffsets);
     }
     this->setEnabled(true);
+    //When rendering objects that are too large, sometimes the next timeout will occur before this function finishes
+    //So, process events (like screen panning) before attempting to do a rendering update.
+    QApplication::processEvents();
 }
