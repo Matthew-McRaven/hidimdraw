@@ -7,12 +7,13 @@ class Edge;
 class NDimPoint {
 private:
     quint32 _dims;
-    QVector<double> _points;
+    QVector<double> _points, _originalPoints;
 public:
     explicit NDimPoint(quint16 dims = 2, QVector<double> point = {0,0});
     void project(quint16 dim, QVector<double> &inputs, QVector<double> &retVal) const;
     void rotate(quint16 d1, quint16 d2, double theta);
     void setPoints(QVector<double> &&points);
+    void resetPoints();
     const QVector<double>& getPoints() const;
 };
 
@@ -21,8 +22,12 @@ class NDimNode : public QGraphicsItem
 public:
     explicit NDimNode(quint32 pointNum, QGraphicsItem* parent = nullptr, quint16 dims = 2, QVector<double> point = {0,0});
 
+    void resetPosition();
+    //Handle projecting if it needs to be done, otherwise do nothing
+    void project(QVector<double> &tempInput, QVector<double> &tempOutput, const QVector<double>& xyOffsets);
     void rotate(quint16 d1, quint16 d2, double theta);
     void setPoints(QVector<double> &&points);
+
     void addEdge(Edge*);
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
@@ -30,9 +35,6 @@ public:
     QPainterPath shape() const override;
     quint32 pointNum() const;
     quint32 dims() const;
-
-    //Handle projecting if it needs to be done, otherwise do nothing
-    void project(QVector<double> &tempInput, QVector<double> &tempOutput);
 
 private:
     //Project from dim to dim-1

@@ -15,6 +15,22 @@ NDimNode::NDimNode(quint32 pointNum, QGraphicsItem *parent, quint16 dims, QVecto
 {
     setZValue(0);
 }
+
+void NDimNode::resetPosition()
+{
+    _point->resetPoints();
+}
+
+void NDimNode::project(QVector<double> &tempInput, QVector<double> &tempOutput, const QVector<double> &xyOffsets)
+{
+    if(_dims<2) return;
+    for(int it=0; it< _point->getPoints().size(); it++) tempInput[it] = _point->getPoints()[it];
+    _point->project(_dims-1, tempInput , tempOutput);
+    _actualX = tempOutput[0] + xyOffsets[0];
+    _actualY = tempOutput[1] + xyOffsets[1];
+    this->setPos(QPointF(_actualX, _actualY));
+    for(int it=0; it<_edges.size();it++) _edges[it]->adjust();
+}
 const int cDist = 400, vDist = 50;
 
 QPainterPath NDimNode::shape() const
@@ -22,17 +38,6 @@ QPainterPath NDimNode::shape() const
     QPainterPath path;
     path.addEllipse(-10, -10, 20, 20);
     return path;
-}
-
-void NDimNode::project(QVector<double> &tempInput, QVector<double> &tempOutput)
-{
-    if(_dims<2) return;
-    for(int it=0; it< _point->getPoints().size(); it++) tempInput[it] = _point->getPoints()[it];
-    _point->project(_dims-1, tempInput , tempOutput);
-    _actualX = tempOutput[0];
-    _actualY = tempOutput[1];
-    this->setPos(QPointF(_actualX, _actualY));
-    for(int it=0; it<_edges.size();it++) _edges[it]->adjust();
 }
 
 void NDimNode::rotate(quint16 d1, quint16 d2, double theta)
@@ -162,9 +167,9 @@ void Edge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
     painter->drawPolygon(QPolygonF() << (line.p1()+line.p2()-2*offset)/2 << destArrowP1-offset << destArrowP2-offset);
 }
 
-NDimPoint::NDimPoint(quint16 dims, QVector<double> point): _dims(dims), _points(point)
+NDimPoint::NDimPoint(quint16 dims, QVector<double> point): _dims(dims), _originalPoints(point), _points(QVector<double>(point.size()))
 {
-
+    resetPoints();
 }
 
 void NDimPoint::project(quint16 dim, QVector<double> &inputs, QVector<double> &retVal) const
@@ -199,5 +204,12 @@ const QVector<double> &NDimPoint::getPoints() const
 
 void NDimPoint::setPoints(QVector<double> &&points)
 {
-    _points = std::move(points);
+    _originalPoints = std::move(points);
+    resetPoints();
+
+}
+
+void NDimPoint::resetPoints()
+{
+    for(int it=0; it<_originalPoints.size(); it++) _points[it] = _originalPoints[it];
 }

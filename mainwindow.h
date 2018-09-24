@@ -18,14 +18,20 @@ public:
 
 public slots:
     void onDimsChanged(int dims);
+    void on_pushButton_Start_clicked();
+    void on_pushButton_Stop_clicked();
+    void on_actionReset_Rotation_triggered();
+    void on_actionReset_Camera_triggered();
 private slots:
     void onDataChanged(QStandardItem* item);
 private:
     Ui::MainWindow *ui;
     SpinBoxAction *_spinAction;
-    QStandardItemModel *model;
+    QStandardItemModel *_model;
     quint16 _dims;
+    bool _isRunning = false;
     void setUpRotationWidget();
+    void updateRunButtons();
 };
 
 #endif // MAINWINDOW_H
