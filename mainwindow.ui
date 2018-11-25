@@ -21,13 +21,6 @@
    <layout class="QGridLayout" name="gridLayout_2">
     <item row="0" column="0">
      <layout class="QGridLayout" name="gridLayout">
-      <item row="1" column="1">
-       <widget class="QPushButton" name="pushButton_Stop">
-        <property name="text">
-         <string>Stop Animation</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="0" colspan="2">
        <widget class="ndimscene" name="graphWidget" native="true">
         <property name="sizePolicy">
@@ -35,6 +28,13 @@
           <horstretch>0</horstretch>
           <verstretch>4</verstretch>
          </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QPushButton" name="pushButton_Stop">
+        <property name="text">
+         <string>Stop Animation</string>
         </property>
        </widget>
       </item>
@@ -47,6 +47,9 @@
       </item>
       <item row="2" column="0" colspan="2">
        <widget class="QTabWidget" name="tabWidget">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
           <horstretch>0</horstretch>
@@ -80,20 +83,6 @@
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="tab_2">
-         <attribute name="title">
-          <string>Inital Rotation</string>
-         </attribute>
-         <layout class="QGridLayout" name="gridLayout_6">
-          <item row="0" column="0">
-           <layout class="QGridLayout" name="gridLayout_5">
-            <item row="0" column="0">
-             <widget class="QTableView" name="tableView"/>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
        </widget>
       </item>
      </layout>
@@ -106,7 +95,7 @@
      <x>0</x>
      <y>0</y>
      <width>400</width>
-     <height>22</height>
+     <height>17</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuShape">

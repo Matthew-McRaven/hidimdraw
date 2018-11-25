@@ -8,8 +8,12 @@
 #include <QStyleOptionGraphicsItem>
 #include <QDebug>
 #include <bitset>
+// Distance from the camera to the center of the object
+const int cameraDist = 600;
+// Distance of the display surface from the camera
+const int viewerDist = 50;
 NDimNode::NDimNode(quint32 pointNum, QGraphicsItem *parent, quint16 dims, QVector<double> point):
-    QGraphicsItem(parent), _pointNum(pointNum), _dims(dims), _actualX(std::numeric_limits<float>::quiet_NaN()),
+    QGraphicsItem(parent), _pointNum(pointNum), _dims(dims), _actualX(std::numeric_limits<double>::quiet_NaN()),
     _point(new NDimPoint(dims, point))
 
 {
@@ -23,15 +27,17 @@ void NDimNode::resetPosition()
 
 void NDimNode::project(QVector<double> &tempInput, QVector<double> &tempOutput, const QVector<double> &xyOffsets)
 {
-    if(_dims<2) return;
-    for(int it=0; it< _point->getPoints().size(); it++) tempInput[it] = _point->getPoints()[it];
-    _point->project(_dims-1, tempInput , tempOutput);
+    // Perspective projections only make sense from dimensions > 2.
+    if(_dims<2) {
+        return;
+    }
+    // Input to NDimPoint::project(...) is a list containing
+    _point->project(tempInput , tempOutput);
     _actualX = tempOutput[0] + xyOffsets[0];
     _actualY = tempOutput[1] + xyOffsets[1];
     this->setPos(QPointF(_actualX, _actualY));
     for(int it=0; it<_edges.size();it++) _edges[it]->adjust();
 }
-const int cDist = 400, vDist = 50;
 
 QPainterPath NDimNode::shape() const
 {
@@ -104,8 +110,8 @@ NDimNode *Edge::destNode() const
 
 void Edge::adjust()
 {
-    if (!source || !dest)
-        return;
+
+    if (source==nullptr || dest==nullptr) return;
 
     QLineF line(mapFromItem(source, 0, 0), mapFromItem(dest, 0, 0));
     qreal length = line.length();
@@ -167,22 +173,33 @@ void Edge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
     painter->drawPolygon(QPolygonF() << (line.p1()+line.p2()-2*offset)/2 << destArrowP1-offset << destArrowP2-offset);
 }
 
-NDimPoint::NDimPoint(quint16 dims, QVector<double> point): _dims(dims), _originalPoints(point), _points(QVector<double>(point.size()))
-{
-    resetPoints();
-}
 
-void NDimPoint::project(quint16 dim, QVector<double> &inputs, QVector<double> &retVal) const
+
+void NDimPoint::projectHelper(quint16 dim, QVector<double> &inputs, QVector<double> &retVal) const
 {
+    //Perspective projection makes no sense in less than 2 dimensions, so abort.
     if(dim < 2) return;
-    for(int dimIt = dim;2 <= dimIt ;dimIt-- ) {
+    // While this might make more logical sense as a recurssive algorithm, perofrmance testing
+    // showed the perspective projection to be the slowest part of the program.
+    // By reducing the number of stack allocations, and using a fixed amount of memory, performance was greatly increased.
+    // For dimensions from dim to 2, and for points in that dimension
+    for(int dimIt = dim; 2 <= dimIt ; dimIt--) {
         for(int it = 0; it < dimIt; it++) {
-            inputs[it] = inputs[it] * cDist / (cDist + vDist + inputs[dimIt]);
+            // Perform a pespective projection from a dimension of dimIt to dimIt-1.
+            // Uses the calculation described here:
+            // https://en.wikipedia.org/wiki/3D_projection#Perspective_projection
+            // Assumes that the camera is orthogonal to the
+            inputs[it] = inputs[it] * cameraDist / (cameraDist + viewerDist + inputs[dimIt]);
         }
     }
     for(int it = 0; it < 2; it++) {
         retVal[it] = inputs[it];
     }
+}
+
+void NDimPoint::project(QVector<double> &inputs, QVector<double> &retVal) const
+{
+    for(int it=0; it < getPoints().size(); it++) inputs[it] = _points[it];
 }
 
 void NDimPoint::rotate(quint16 d1, quint16 d2, double theta)

@@ -7,6 +7,10 @@
 #include <QTimer>
 #include <QWheelEvent>
 #include <QGestureEvent>
+
+/*
+ *
+ */
 class ndimscene : public QGraphicsView
 {
 public:
@@ -15,6 +19,7 @@ public:
     void resetPosition();
     void resetCamera();
     void resetRotation();
+
 public slots:
     void startRotation();
     void stopRotation();
@@ -27,14 +32,17 @@ public slots:
     void keyPressEvent(QKeyEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
 #if QT_CONFIG(wheelevent)
+    // Since not all operating systems support mouses (e.g. IOS), this code can only conditionally be included.
     void wheelEvent(QWheelEvent *event) override;
 #endif
+
 protected slots:
     void scaleView(qreal scaleFactor);
+
 private:
     quint32 _dims, _rotEntries;
     double _scaleFactor;
-    QTimer* timer;
+    QTimer* _timer;
     QVector<NDimNode*> _points;
     QVector<Edge*> _edges;
     QVector<double> _rotMatrices, _xyOffsets;

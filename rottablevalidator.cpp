@@ -11,15 +11,16 @@ RotTableDelegator::~RotTableDelegator()
 
 }
 
-QWidget *RotTableDelegator::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
+QWidget *RotTableDelegator::createEditor(QWidget *parent, const QStyleOptionViewItem &, const QModelIndex &index) const
 {
     // The first column is not user editable, so do not create an editor.
     if(index.column() == 0) return 0;
-    // Otherwise, defer to QStyledItemDelegate's implementation, which returns a LineEdit
+
+    // Otherwise, defer to QStyledItemDelegate's implementation
     QDoubleSpinBox *spin = new QDoubleSpinBox(parent);
     spin->setSingleStep(.1);
-    spin->setMinimum(-4);
-    spin->setMaximum(4);
+    spin->setMinimum(MIN_VAL);
+    spin->setMaximum(MAX_VAL);
     return spin;
 }
 

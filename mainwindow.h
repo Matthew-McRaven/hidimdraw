@@ -13,7 +13,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
 public slots:
@@ -22,8 +22,10 @@ public slots:
     void on_pushButton_Stop_clicked();
     void on_actionReset_Rotation_triggered();
     void on_actionReset_Camera_triggered();
+
 private slots:
     void onDataChanged(QStandardItem* item);
+
 private:
     Ui::MainWindow *ui;
     SpinBoxAction *_spinAction;

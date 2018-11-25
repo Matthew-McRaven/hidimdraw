@@ -9,7 +9,7 @@
 static const int dist = 100;
 QVector<double> tempRet = QVector<double>(2), tempInput = QVector<double>(8);
 ndimscene::ndimscene(QWidget* parent, quint16 dims): QGraphicsView(parent), _scaleFactor(2),
-    timer(new QTimer(this)), _dims(dims), _points(), _rotMatrices(QVector<double>(21)), _xyOffsets(QVector<double>(2)),
+    _timer(new QTimer(this)), _dims(dims), _points(), _rotMatrices(QVector<double>(21)), _xyOffsets(QVector<double>(2)),
     _idxToDims(QVector<std::tuple<quint16, quint16>>(22))
 {
     QGraphicsScene *scene = new QGraphicsScene(this);
@@ -25,8 +25,8 @@ ndimscene::ndimscene(QWidget* parent, quint16 dims): QGraphicsView(parent), _sca
     setFocusPolicy(Qt::StrongFocus);
 
     setDims(dims);
-    connect(timer,&QTimer::timeout,this,&ndimscene::doStep);
-    timer->setInterval(20);
+    connect(_timer,&QTimer::timeout,this,&ndimscene::doStep);
+    _timer->setInterval(20);
     this->grabGesture(Qt::PinchGesture); this->grabGesture(Qt::PanGesture);
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -76,12 +76,12 @@ void ndimscene::resetRotation()
 
 void ndimscene::startRotation()
 {
-    timer->start();
+    _timer->start();
 }
 
 void ndimscene::stopRotation()
 {
-    timer->stop();
+    _timer->stop();
 }
 
 void ndimscene::onSetDims(int dimensions)
@@ -230,7 +230,6 @@ void ndimscene::setDims(quint16 dims)
             if(other < it) continue;
             else {
                 Edge* edge = new Edge(_points[it],_points[other]);
-                edge->cidx = (inner+std::bitset<sizeof(int)>(it).count())%dims;
                 edge->fillColor = colors[log2(it^other)];
                 edge->setDotted(std::bitset<sizeof(int)>(it>>(int)log2(it^other)).count()%2);
                 scene()->addItem(edge);
